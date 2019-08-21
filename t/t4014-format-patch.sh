@@ -822,7 +822,7 @@ test_expect_success 'format-patch --ignore-if-in-upstream HEAD' '
 '
 
 test_expect_success 'get git version' '
-	git_version="$(git --version | sed "s/.* //")"
+	git_version=$(git --version) &&	git_version=${git_version##* }
 '
 
 signature() {
