@@ -262,6 +262,13 @@ test_expect_success 'partial clone with sparse filter succeeds' '
 	git clone --no-local --no-checkout --filter=sparse:oid=master:odd-files sparse-src pc-odd
 '
 
+test_expect_success 'partial clone with unresolvable sparse filter fails cleanly' '
+	test_must_fail git clone --no-local --no-checkout --filter=sparse:oid=master:sparse-filter sparse-src sc1 2>err &&
+	test_i18ngrep "unable to read sparse filter specification from sparse:oid=master:sparse-filter" err &&
+	test_must_fail git clone --no-local --no-checkout --filter=sparse:oid=master sparse-src sc2 2>err &&
+	test_i18ngrep "unable to parse sparse filter data in $(git -C sparse-src rev-parse master)" err
+'
+
 . "$TEST_DIRECTORY"/lib-httpd.sh
 start_httpd
 
