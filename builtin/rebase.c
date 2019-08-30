@@ -1969,12 +1969,11 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 			struct child_process stash = CHILD_PROCESS_INIT;
 			struct object_id oid;
 			struct object_id head_oid;
-			if (get_oid("HEAD", &head_oid)) {
-				die(_("could not determine HEAD revision"));
-			}
+			struct commit *head;
 
-			struct commit *head =
-				lookup_commit_reference(the_repository, &head_oid);
+			if (get_oid("HEAD", &head_oid))
+				die(_("could not determine HEAD revision"));
+			head = lookup_commit_reference(the_repository, &head_oid);
 
 			argv_array_pushl(&stash.args,
 					 "stash", "create", "autostash", NULL);
