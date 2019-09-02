@@ -4901,6 +4901,69 @@ void todo_list_add_exec_commands(struct todo_list *todo_list,
 	todo_list->alloc = alloc;
 }
 
+/*
+ * Add commands to update branch refs after the todo list would pick a commit
+ * that a branch ref points to.
+ */
+static void todo_list_add_branch_updates(struct todo_list *todo_list,
+				       const char *head_name)
+{
+	struct strbuf *buf = &todo_list->buf;
+	int i, nr = 0, alloc = 0;
+	struct todo_item *items = NULL;
+
+	load_ref_decorations(NULL, 0);
+
+	for (i = 0; i < todo_list->nr; i++) {
+		const struct todo_item *item = &todo_list->items[i];
+		enum todo_command command = item->command;
+		const struct name_decoration *decoration;
+
+		ALLOC_GROW(items, nr + 1, alloc);
+		items[nr++] = todo_list->items[i];
+
+		switch (command) {
+		case TODO_PICK:
+		case TODO_MERGE:
+			break;
+		default:
+			continue;
+		}
+
+		decoration = get_name_decoration(&item->commit->object);
+		for (; decoration; decoration = decoration->next) {
+			size_t base_offset, pretty_name_len;
+			const char *pretty_name;
+
+			if (decoration->type != DECORATION_REF_LOCAL)
+				continue;
+			if (!strcmp(decoration->name, head_name))
+				// Rebase itself will update the current branch for us.
+				continue;
+
+			base_offset = buf->len;
+			pretty_name = prettify_refname(decoration->name);
+			pretty_name_len = strlen(pretty_name);
+			strbuf_addstr(buf, "exec git branch -f ");
+			strbuf_addstr(buf, pretty_name);
+			strbuf_addch(buf, '\n');
+
+			ALLOC_GROW(items, nr + 1, alloc);
+			items[nr++] = (struct todo_item) {
+				.command = TODO_EXEC,
+				.offset_in_buf = base_offset,
+				.arg_offset = base_offset + strlen("exec "),
+				.arg_len = strlen("git branch -f ") + pretty_name_len,
+			};
+		}
+	}
+
+	FREE_AND_NULL(todo_list->items);
+	todo_list->items = items;
+	todo_list->nr = nr;
+	todo_list->alloc = alloc;
+}
+
 static void todo_list_to_strbuf(struct repository *r, struct todo_list *todo_list,
 				struct strbuf *buf, int num, unsigned flags)
 {
@@ -5051,7 +5114,7 @@ static int skip_unnecessary_picks(struct repository *r,
 
 int complete_action(struct repository *r, struct replay_opts *opts, unsigned flags,
 		    const char *shortrevisions, const char *onto_name,
-		    struct commit *onto, const char *orig_head,
+		    struct commit *onto, const char *head_name, const char *orig_head,
 		    struct string_list *commands, unsigned autosquash,
 		    struct todo_list *todo_list)
 {
@@ -5075,6 +5138,9 @@ int complete_action(struct repository *r, struct replay_opts *opts, unsigned fla
 
 	if (commands->nr)
 		todo_list_add_exec_commands(todo_list, commands);
+
+	if (flags & TODO_LIST_UPDATE_BRANCHES)
+		todo_list_add_branch_updates(todo_list, head_name);
 
 	if (count_commands(todo_list) == 0) {
 		apply_autostash(opts);

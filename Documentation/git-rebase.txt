@@ -246,6 +246,13 @@ leave out at most one of A and B, in which case it defaults to HEAD.
 +
 See also INCOMPATIBLE OPTIONS below.
 
+--update-branches::
+	If there are branch refs that point to commits that will be
+	reapplied, add shell commands to the todo list to update those
+	refs to point to the commits in the final history.
++
+See also INCOMPATIBLE OPTIONS below.
+
 --allow-empty-message::
 	By default, rebasing commits with an empty message will fail.
 	This option overrides that behavior, allowing commits with empty
@@ -535,6 +542,7 @@ are incompatible with the following options:
  * --interactive
  * --exec
  * --keep-empty
+ * --update-branches
  * --edit-todo
  * --root when used in combination with --onto
 

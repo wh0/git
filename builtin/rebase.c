@@ -78,6 +78,7 @@ struct rebase_options {
 	int signoff;
 	int allow_rerere_autoupdate;
 	int keep_empty;
+	int update_branches;
 	int autosquash;
 	char *gpg_sign_opt;
 	int autostash;
@@ -349,8 +350,8 @@ static int do_interactive_rebase(struct rebase_options *opts, unsigned flags)
 
 		split_exec_commands(opts->cmd, &commands);
 		ret = complete_action(the_repository, &replay, flags,
-			shortrevisions, opts->onto_name, opts->onto, head_hash,
-			&commands, opts->autosquash, &todo_list);
+			shortrevisions, opts->onto_name, opts->onto, opts->head_name,
+			head_hash, &commands, opts->autosquash, &todo_list);
 	}
 
 	string_list_clear(&commands, 0);
@@ -375,6 +376,7 @@ static int run_rebase_interactive(struct rebase_options *opts,
 	flags |= opts->rebase_merges ? TODO_LIST_REBASE_MERGES : 0;
 	flags |= opts->rebase_cousins > 0 ? TODO_LIST_REBASE_COUSINS : 0;
 	flags |= command == ACTION_SHORTEN_OIDS ? TODO_LIST_SHORTEN_IDS : 0;
+	flags |= opts->update_branches ? TODO_LIST_UPDATE_BRANCHES : 0;
 
 	switch (command) {
 	case ACTION_NONE: {
@@ -447,6 +449,8 @@ int cmd_rebase__interactive(int argc, const char **argv, const char *prefix)
 		OPT_NEGBIT(0, "ff", &opts.flags, N_("allow fast-forward"),
 			   REBASE_FORCE),
 		OPT_BOOL(0, "keep-empty", &opts.keep_empty, N_("keep empty commits")),
+		OPT_BOOL(0, "update-branches", &opts.update_branches,
+			 N_("update branches that point to reapplied commits")),
 		OPT_BOOL(0, "allow-empty-message", &opts.allow_empty_message,
 			 N_("allow commits with empty messages")),
 		OPT_BOOL(0, "rebase-merges", &opts.rebase_merges, N_("rebase merge commits")),
@@ -1453,6 +1457,8 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 		OPT_RERERE_AUTOUPDATE(&options.allow_rerere_autoupdate),
 		OPT_BOOL('k', "keep-empty", &options.keep_empty,
 			 N_("preserve empty commits during rebase")),
+		OPT_BOOL(0, "update-branches", &options.update_branches,
+			 N_("update branches that point to reapplied commits")),
 		OPT_BOOL(0, "autosquash", &options.autosquash,
 			 N_("move commits that begin with "
 			    "squash!/fixup! under -i")),
@@ -1709,6 +1715,9 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 
 	if (options.keep_empty)
 		imply_interactive(&options, "--keep-empty");
+
+	if (options.update_branches)
+		imply_interactive(&options, "--update-branches");
 
 	if (gpg_sign) {
 		free(options.gpg_sign_opt);
