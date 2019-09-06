@@ -4922,13 +4922,8 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 		ALLOC_GROW(items, nr + 1, alloc);
 		items[nr++] = todo_list->items[i];
 
-		switch (command) {
-		case TODO_PICK:
-		case TODO_MERGE:
-			break;
-		default:
+		if (!(is_pick_or_similar(command) || command == TODO_MERGE))
 			continue;
-		}
 
 		decoration = get_name_decoration(&item->commit->object);
 		for (; decoration; decoration = decoration->next) {
