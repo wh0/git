@@ -449,8 +449,6 @@ int cmd_rebase__interactive(int argc, const char **argv, const char *prefix)
 		OPT_NEGBIT(0, "ff", &opts.flags, N_("allow fast-forward"),
 			   REBASE_FORCE),
 		OPT_BOOL(0, "keep-empty", &opts.keep_empty, N_("keep empty commits")),
-		OPT_BOOL(0, "update-branches", &opts.update_branches,
-			 N_("update branches that point to reapplied commits")),
 		OPT_BOOL(0, "allow-empty-message", &opts.allow_empty_message,
 			 N_("allow commits with empty messages")),
 		OPT_BOOL(0, "rebase-merges", &opts.rebase_merges, N_("rebase merge commits")),
