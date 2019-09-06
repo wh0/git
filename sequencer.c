@@ -4938,7 +4938,7 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 			if (decoration->type != DECORATION_REF_LOCAL)
 				continue;
 			if (!strcmp(decoration->name, head_name))
-				// Rebase itself will update the current branch for us.
+				/* rebase itself will update the current branch for us */
 				continue;
 
 			base_offset = buf->len;
