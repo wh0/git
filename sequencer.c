@@ -4905,10 +4905,12 @@ void todo_list_add_exec_commands(struct todo_list *todo_list,
  * Add commands to update branch refs after the todo list would pick a commit
  * that a branch ref points to.
  */
-static void todo_list_add_branch_updates(struct todo_list *todo_list,
-				       const char *head_name)
+static void todo_list_add_branch_updates(struct repository *r,
+					 struct todo_list *todo_list,
+					 const char *head_name)
 {
 	struct strbuf *buf = &todo_list->buf;
+	/* watch out: items in here point into todo_list's buf, not its own */
 	struct todo_list new_list = TODO_LIST_INIT;
 	int i;
 
@@ -4926,8 +4928,7 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 
 		decoration = get_name_decoration(&item->commit->object);
 		for (; decoration; decoration = decoration->next) {
-			size_t base_offset, pretty_name_len;
-			const char *pretty_name;
+			size_t base_offset;
 
 			/*
 			 * (i)  skip other refs like tags and remote refs
@@ -4939,18 +4940,11 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 				continue;
 
 			base_offset = buf->len;
-			pretty_name = prettify_refname(decoration->name);
-			pretty_name_len = strlen(pretty_name);
-			strbuf_addstr(buf, "exec git branch -f ");
-			strbuf_addstr(buf, pretty_name);
-			strbuf_addch(buf, '\n');
-
-			*append_new_todo(&new_list) = (struct todo_item) {
-				.command = TODO_EXEC,
-				.offset_in_buf = base_offset,
-				.arg_offset = base_offset + strlen("exec "),
-				.arg_len = strlen("git branch -f ") + pretty_name_len,
-			};
+			strbuf_addf(buf, "exec git branch -f %s\n",
+				    prettify_refname(decoration->name));
+			parse_insn_line(r, append_new_todo(&new_list), buf->buf,
+					buf->buf + base_offset,
+					buf->buf + buf->len - 1);
 		}
 	}
 
@@ -5136,7 +5130,7 @@ int complete_action(struct repository *r, struct replay_opts *opts, unsigned fla
 		todo_list_add_exec_commands(todo_list, commands);
 
 	if (flags & TODO_LIST_UPDATE_BRANCHES)
-		todo_list_add_branch_updates(todo_list, head_name);
+		todo_list_add_branch_updates(r, todo_list, head_name);
 
 	if (count_commands(todo_list) == 0) {
 		apply_autostash(opts);
