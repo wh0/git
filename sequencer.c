@@ -4930,10 +4930,13 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 			size_t base_offset, pretty_name_len;
 			const char *pretty_name;
 
-			if (decoration->type != DECORATION_REF_LOCAL)
-				continue;
-			if (!strcmp(decoration->name, head_name))
-				/* rebase itself will update the current branch for us */
+			/*
+			 * (i)  skip other refs like tags and remote refs
+			 * (ii) rebase itself will update the current branch
+			 *      for us
+			 */
+			if (decoration->type != DECORATION_REF_LOCAL ||
+			    !strcmp(decoration->name, head_name))
 				continue;
 
 			base_offset = buf->len;
