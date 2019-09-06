@@ -1456,7 +1456,7 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 		OPT_BOOL('k', "keep-empty", &options.keep_empty,
 			 N_("preserve empty commits during rebase")),
 		OPT_BOOL(0, "update-branches", &options.update_branches,
-			 N_("update branches that point to reapplied commits")),
+			 N_("update branches that point to rebased commits")),
 		OPT_BOOL(0, "autosquash", &options.autosquash,
 			 N_("move commits that begin with "
 			    "squash!/fixup! under -i")),

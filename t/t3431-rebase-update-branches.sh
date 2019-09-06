@@ -3,7 +3,7 @@
 test_description='git rebase -i --update-branches
 
 This test runs git rebase, moving branch refs that point to commits
-that are reapplied.
+that are rebased.
 
 Initial setup:
 
