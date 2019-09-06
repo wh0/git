@@ -19,7 +19,7 @@ Initial setup:
        \|
          G      (interim)
            \
-             H  (my-dev)
+             H  (my-dev, my-hotfixes)
 '
 . ./test-lib.sh
 
@@ -48,7 +48,8 @@ test_expect_success 'setup merge' '
 	git checkout -b interim &&
 	test_merge G feat-e &&
 	git checkout -b my-dev &&
-	test_commit H
+	test_commit H &&
+	git branch my-hotfixes
 '
 
 test_expect_success 'smoketest merge' '
@@ -58,7 +59,8 @@ test_expect_success 'smoketest merge' '
 test_expect_success 'check merge' '
 	git rev-parse feat-e:B.t &&
 	git rev-parse feat-f:B.t &&
-	git rev-parse interim:B.t
+	git rev-parse interim:B.t &&
+	git rev-parse my-hotfixes:B.t
 '
 
 test_done
