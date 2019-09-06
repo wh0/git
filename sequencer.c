@@ -4909,8 +4909,8 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 				       const char *head_name)
 {
 	struct strbuf *buf = &todo_list->buf;
-	int i, nr = 0, alloc = 0;
-	struct todo_item *items = NULL;
+	struct todo_list new_list = TODO_LIST_INIT;
+	int i;
 
 	load_ref_decorations(NULL, 0);
 
@@ -4919,8 +4919,7 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 		enum todo_command command = item->command;
 		const struct name_decoration *decoration;
 
-		ALLOC_GROW(items, nr + 1, alloc);
-		items[nr++] = todo_list->items[i];
+		*append_new_todo(&new_list) = todo_list->items[i];
 
 		if (!(is_pick_or_similar(command) || command == TODO_MERGE))
 			continue;
@@ -4946,8 +4945,7 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 			strbuf_addstr(buf, pretty_name);
 			strbuf_addch(buf, '\n');
 
-			ALLOC_GROW(items, nr + 1, alloc);
-			items[nr++] = (struct todo_item) {
+			*append_new_todo(&new_list) = (struct todo_item) {
 				.command = TODO_EXEC,
 				.offset_in_buf = base_offset,
 				.arg_offset = base_offset + strlen("exec "),
@@ -4956,10 +4954,10 @@ static void todo_list_add_branch_updates(struct todo_list *todo_list,
 		}
 	}
 
-	FREE_AND_NULL(todo_list->items);
-	todo_list->items = items;
-	todo_list->nr = nr;
-	todo_list->alloc = alloc;
+	SWAP(new_list.items, todo_list->items);
+	SWAP(new_list.nr, todo_list->nr);
+	SWAP(new_list.alloc, todo_list->alloc);
+	todo_list_release(&new_list);
 }
 
 static void todo_list_to_strbuf(struct repository *r, struct todo_list *todo_list,
