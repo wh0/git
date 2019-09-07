@@ -4917,7 +4917,7 @@ static void todo_list_add_branch_updates(struct repository *r,
 	load_ref_decorations(NULL, 0);
 
 	for (i = 0; i < todo_list->nr; i++) {
-		const struct todo_item *item = &todo_list->items[i];
+		const struct todo_item *item = todo_list->items + i;
 		enum todo_command command = item->command;
 		const struct name_decoration *decoration;
 
