@@ -23,9 +23,12 @@ Initial setup:
 '
 . ./test-lib.sh
 
-test_expect_success 'setup linear' '
+test_expect_success 'set up common' '
 	test_commit A &&
-	test_commit B &&
+	test_commit B
+'
+
+test_expect_success 'set up linear' '
 	git checkout -b linear-early A &&
 	test_commit C &&
 	git checkout -b linear-late &&
@@ -40,7 +43,7 @@ test_expect_success 'check linear' '
 	git rev-parse linear-early:B.t
 '
 
-test_expect_success 'setup merge' '
+test_expect_success 'set up merge' '
 	git checkout -b feat-e A &&
 	test_commit E &&
 	git checkout -b feat-f A &&
