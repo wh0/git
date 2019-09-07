@@ -5123,14 +5123,14 @@ int complete_action(struct repository *r, struct replay_opts *opts, unsigned fla
 		item->arg_len = item->arg_offset = item->flags = item->offset_in_buf = 0;
 	}
 
+	if (flags & TODO_LIST_UPDATE_BRANCHES)
+		todo_list_add_branch_updates(r, todo_list, head_name);
+
 	if (autosquash && todo_list_rearrange_squash(todo_list))
 		return -1;
 
 	if (commands->nr)
 		todo_list_add_exec_commands(todo_list, commands);
-
-	if (flags & TODO_LIST_UPDATE_BRANCHES)
-		todo_list_add_branch_updates(r, todo_list, head_name);
 
 	if (count_commands(todo_list) == 0) {
 		apply_autostash(opts);
