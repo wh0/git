@@ -44,7 +44,7 @@ test_expect_success 'smoketest linear' '
 '
 
 test_expect_success 'check linear' '
-	git rev-parse linear-early:B.t
+	test_cmp_rev linear-early HEAD^
 '
 
 test_expect_success 'set up merge' '
@@ -64,30 +64,31 @@ test_expect_success 'smoketest merge' '
 '
 
 test_expect_success 'check merge' '
-	git rev-parse feat-e:B.t &&
-	git rev-parse feat-f:B.t &&
-	git rev-parse interim:B.t &&
-	git rev-parse my-hotfixes:B.t
+	test_cmp_rev feat-e HEAD^^2 &&
+	test_cmp_rev feat-f HEAD^^ &&
+	test_cmp_rev interim HEAD^ &&
+	test_cmp_rev my-hotfixes HEAD
 '
 
 test_expect_success 'set up fixup' '
 	git checkout -b fixup-early A &&
 	test_commit I &&
 	test_commit J &&
-	test_commit "fixup! I" I.t.fix fix fixup-I &&
+	test_commit "fixup! I" I.t II fixup-I &&
 	git checkout -b fixup-late &&
 	test_commit K &&
-	test_commit "fixup! J" J.t.fix fix fixup-J
+	test_commit "fixup! J" J.t JJ fixup-J
 '
 
 test_expect_success 'smoketest fixup' '
-	git rebase --autosquash --update-branches master
+	git rebase -i --autosquash --update-branches master
 '
 
 test_expect_success 'check fixup' '
-	git rev-parse fixup-early~:I.t.fix &&
-	git rev-parse fixup-early:J.t.fix &&
-	test -f K.t
+	test_cmp_rev fixup-early HEAD^ &&
+	test_cmp_rev fixup-early^:I.t fixup-I:I.t &&
+	test_cmp_rev fixup-early:J.t fixup-J:J.t &&
+	test_cmp_rev HEAD:K.t K:K.t
 '
 
 test_done
