@@ -7,19 +7,23 @@ that are rebased.
 
 Initial setup:
 
- A - B          (master)
+ A - B  (master)
   |\
-  |  C          (linear-early)
+  |  C      (linear-early)
   |    \
-  |      D      (linear-late)
+  |      D  (linear-late)
   |\
   |  E          (feat-e)
-   \   \
-     F  |       (feat-f)
-       \|
-         G      (interim)
-           \
-             H  (my-dev, my-hotfixes)
+  |\   \
+  |  F  |       (feat-f)
+  |    \|
+  |      G      (interim)
+  |        \
+  |          H  (my-dev, my-hotfixes)
+   \
+     I - J - fixup! I                 (fixup-early)
+		      \
+			K - fixup! J  (fixup-late)
 '
 . ./test-lib.sh
 
@@ -64,6 +68,26 @@ test_expect_success 'check merge' '
 	git rev-parse feat-f:B.t &&
 	git rev-parse interim:B.t &&
 	git rev-parse my-hotfixes:B.t
+'
+
+test_expect_success 'set up fixup' '
+	git checkout -b fixup-early A &&
+	test_commit I &&
+	test_commit J &&
+	test_commit "fixup! I" I.t.fix fix fixup-I &&
+	git checkout -b fixup-late &&
+	test_commit K &&
+	test_commit "fixup! J" J.t.fix fix fixup-J
+'
+
+test_expect_success 'smoketest fixup' '
+	git rebase --autosquash --update-branches master
+'
+
+test_expect_success 'check fixup' '
+	git rev-parse fixup-early~:I.t.fix &&
+	git rev-parse fixup-early:J.t.fix &&
+	test -f K.t
 '
 
 test_done
