@@ -551,6 +551,7 @@ In addition, the following pairs of options are incompatible:
  * --preserve-merges and --interactive
  * --preserve-merges and --signoff
  * --preserve-merges and --rebase-merges
+ * --preserve-merges and --update-branches
  * --rebase-merges and --strategy
  * --rebase-merges and --strategy-option
 
